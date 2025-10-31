@@ -244,6 +244,9 @@ if (require.main === module) {
 		case "findWithinFiles":
 			executeCommand(liveGrep);
 			break;
+		case "findWithinCurrentFile":
+			executeCommand(liveGrep);
+			break;
 		case "pickFileFromGitStatus":
 			executeCommand(pickFilesFromGitStatus);
 			break;

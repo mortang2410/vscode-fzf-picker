@@ -205,6 +205,7 @@ The debug log is invaluable for:
 | `fzf-picker.findFilesWithType`       | Find It Faster: search file (with type filter)         |
 | `fzf-picker.findWithinFiles`         | Find It Faster: search within files                    |
 | `fzf-picker.findWithinFilesWithType` | Find It Faster: search within files (with type filter) |
+| `fzf-picker.findWithinCurrentFile`   | Find It Faster: search within current file             |
 | `fzf-picker.resumeSearch`            | Find It Faster: resume last search                     |
 | `fzf-picker.pickFileFromGitStatus`   | Find It Faster: Pick file from git status              |
 | `fzf-picker.findTodoFixme`           | Find It Faster: Find TODO/FIXME comments               |

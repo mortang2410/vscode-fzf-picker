@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { join, dirname } from "node:path";
+import { promises as fs } from "node:fs";
+import path, { join, dirname, basename } from "node:path";
 import { DEBUG } from "../utils/debug";
 import { getLastQuery, saveLastQuery } from "../utils/search-cache";
 
@@ -18,6 +19,32 @@ export async function liveGrep(
 	initialQuery?: string,
 	saveQuery: boolean = true,
 ): Promise<string[]> {
+	// Navigate to the first path if it's the only one
+	// Handle file paths - if it's a file, change to its directory and use just the filename
+	let singleDirRoot = "";
+	if (paths.length === 1) {
+		const singlePath = paths[0];
+		try {
+			const stats = await fs.stat(singlePath);
+			if (stats.isFile()) {
+				// If it's a file, change to its directory and use just the filename
+				singleDirRoot = dirname(singlePath);
+				process.chdir(singleDirRoot);
+				paths = [basename(singlePath)];
+			} else {
+				// Otherwise, assume it's a directory (original behavior)
+				singleDirRoot = singlePath;
+				process.chdir(singleDirRoot);
+				paths = ["."];
+			}
+		} catch (error) {
+			// If stat fails, assume it's a directory (original behavior)
+			singleDirRoot = singlePath;
+			process.chdir(singleDirRoot);
+			paths = ["."];
+		}
+	}
+
 	return new Promise((resolve, reject) => {
 		let previewCommand =
 			process.env.FIND_WITHIN_FILES_PREVIEW_COMMAND ||
@@ -27,14 +54,6 @@ export async function liveGrep(
 			"right:border-left:50%:+{2}+3/3:~3";
 		const useGitignore = process.env.USE_GITIGNORE !== "0";
 		const fileTypes = process.env.TYPE_FILTER || "";
-
-		// Navigate to the first path if it's the only one
-		let singleDirRoot = "";
-		if (paths.length === 1) {
-			singleDirRoot = paths[0];
-			process.chdir(singleDirRoot);
-			paths = ["."];
-		}
 
 		// Base rg args that are always used
 		const baseRgArgs = [

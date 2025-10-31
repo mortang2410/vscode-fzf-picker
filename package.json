@@ -55,6 +55,10 @@
 				"title": "Find It Faster: search within files (with type filter)"
 			},
 			{
+				"command": "fzf-picker.findWithinCurrentFile",
+				"title": "Find It Faster: search within current file"
+			},
+			{
 				"command": "fzf-picker.resumeSearch",
 				"title": "Find It Faster: resume last search"
 			},

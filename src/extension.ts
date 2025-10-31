@@ -49,6 +49,11 @@ const commands: { [key: string]: Command } = {
 			CFG.useTypeFilter = false;
 		},
 	},
+	findWithinCurrentFile: {
+		command: "findWithinCurrentFile",
+		preRunCallback: undefined,
+		postRunCallback: undefined,
+	},
 	resumeSearch: {
 		command: "resumeSearch",
 		preRunCallback: undefined,
@@ -363,6 +368,13 @@ async function executeTerminalCommand(cmd: string) {
 					hasFilter: cmd === "findWithinFilesWithType",
 				});
 				break;
+			case "findWithinCurrentFile":
+				await executeCommand({
+					name: "findWithinCurrentFile",
+					withTextSelection: true,
+					hasFilter: false,
+				});
+				break;
 			case "findTodoFixme":
 				await executeCommand({
 					name: "findTodoFixme",
@@ -481,12 +493,29 @@ async function executeCommand({
 	logger.info(`Has filter: ${hasFilter}`);
 	logger.info(`Is resume search: ${isResumeSearch}`);
 
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders) {
-		vscode.window.showErrorMessage("No workspace folder open");
-		return;
+	// For findWithinCurrentFile, get the current file path
+	let rootPath: string;
+	if (name === "findWithinCurrentFile") {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage("No active file open. Please open a file first.");
+			return;
+		}
+		const currentFilePath = editor.document.fileName;
+		if (!currentFilePath) {
+			vscode.window.showErrorMessage("Current file has no path. Please save the file first.");
+			return;
+		}
+		// Use current file path instead of rootPath
+		rootPath = currentFilePath;
+	} else {
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders) {
+			vscode.window.showErrorMessage("No workspace folder open");
+			return;
+		}
+		rootPath = workspaceFolders[0].uri.fsPath;
 	}
-	const rootPath = workspaceFolders[0].uri.fsPath;
 
 	// Get the path to the commands.js file
 	const commandsJsPath = join(CFG.extensionPath, "out", "commands.js");
@@ -572,6 +601,10 @@ const { activate, deactivate } = defineExtension(async () => {
 
 	useCommand(Meta.commands.findWithinFilesWithType, async () => {
 		await executeTerminalCommand("findWithinFilesWithType");
+	});
+
+	useCommand(Meta.commands.findWithinCurrentFile, async () => {
+		await executeTerminalCommand("findWithinCurrentFile");
 	});
 
 	useCommand(Meta.commands.findTodoFixme, async () => {
